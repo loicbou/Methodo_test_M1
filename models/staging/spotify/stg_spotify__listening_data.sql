@@ -4,10 +4,9 @@ with source as (
 
 renamed as (
     select
-        user_id,
         song_id,
-        CAST(listen_date AS DATE)           as listen_date,
-        COALESCE(minutes_listened, 0)       as minutes_listened
+        CAST(listen_date AS DATE)       as listen_date,
+        COALESCE(minutes_listened, 0)   as minutes_listened
     from source
 )
 

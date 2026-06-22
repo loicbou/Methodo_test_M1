@@ -5,8 +5,10 @@ with source as (
 renamed as (
     select
         song_id,
-        UPPER(artist_name)          as artist_name,
         UPPER(title)                as title,
+        UPPER(artist)               as artist_name,
+        album,
+        release_year,
         COALESCE(genre, 'Unknown')  as genre
     from source
 )
