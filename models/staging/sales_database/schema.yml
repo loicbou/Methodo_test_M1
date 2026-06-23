@@ -1,0 +1,160 @@
+version: 2
+
+models:
+  - name: stg_sales_database__order
+    description: "Cleaned order data from sales_database. Timestamps converted to Europe/Paris timezone. Deduplicated on order_id."
+    columns:
+      - name: order_id
+        description: "Primary key - unique order identifier"
+        tests:
+          - unique:
+              name: stg_order_order_id_unique
+          - not_null:
+              name: stg_order_order_id_not_null
+      - name: user_name
+        description: "Foreign key to stg_sales_database_user"
+        tests:
+          - relationships:
+              name: stg_order_user_name_fk
+              arguments:
+                to: ref('stg_sales_database_user')
+                field: user_name
+      - name: order_status
+        description: "Current status of the order"
+        tests:
+          - accepted_values:
+              name: stg_order_status_accepted_values
+              arguments:
+                values: ['delivered', 'shipped', 'canceled', 'processing', 'invoiced', 'unavailable', 'approved']
+      - name: order_date
+        description: "Order creation date, converted to Europe/Paris DATETIME"
+      - name: order_approved_date
+        description: "Order approval date, converted to Europe/Paris DATETIME"
+
+  - name: g_sales_database__order_item
+    description: "Cleaned order items. Composite primary key created from order_id and product_id."
+    columns:
+      - name: order_item_id
+        description: "Primary key - computed by CONCAT(order_id, '_', product_id)"
+        tests:
+          - unique:
+              name: g_order_item_id_unique
+          - not_null:
+              name: g_order_item_id_not_null
+      - name: order_id
+        description: "Foreign key to stg_sales_database__order"
+        tests:
+          - relationships:
+              name: g_order_item_order_id_fk
+              arguments:
+                to: ref('stg_sales_database__order')
+                field: order_id
+      - name: product_id
+        description: "Foreign key to stg_sales_database_product"
+        tests:
+          - relationships:
+              name: stg_order_item_product_id_fk
+              arguments:
+                to: ref('stg_sales_database_product')
+                field: product_id
+      - name: seller_id
+        description: "Foreign key to stg_sales_database_seller"
+        tests:
+          - relationships:
+              name: g_order_item_seller_id_fk
+              arguments:
+                to: ref('stg_sales_database_seller')
+                field: seller_id
+
+  - name: stg_sales_database_feedback
+    description: "Cleaned feedback data. Deduplicated on feedback_id."
+    columns:
+      - name: feedback_id
+        description: "Primary key"
+        tests:
+          - unique:
+              name: stg_feedback_id_unique
+          - not_null:
+              name: stg_feedback_id_not_null
+      - name: order_id
+        description: "Foreign key to stg_sales_database__order"
+        tests:
+          - relationships:
+              name: stg_feedback_order_id_fk
+              arguments:
+                to: ref('stg_sales_database__order')
+                field: order_id
+      - name: feedback_score
+        description: "Score between 1 and 5"
+        tests:
+          - accepted_values:
+              name: stg_feedback_score_accepted_values
+              arguments:
+                values: [1, 2, 3, 4, 5]
+
+  - name: stg_sales_database_payment
+    description: "Cleaned payment data. Composite primary key created from order_id and payment_sequential."
+    columns:
+      - name: payment_id
+        description: "Primary key - computed by CONCAT(order_id, '_', payment_sequential)"
+        tests:
+          - unique:
+              name: stg_payment_id_unique
+          - not_null:
+              name: stg_payment_id_not_null
+      - name: order_id
+        description: "Foreign key to stg_sales_database__order"
+        tests:
+          - relationships:
+              name: stg_payment_order_id_fk
+              arguments:
+                to: ref('stg_sales_database__order')
+                field: order_id
+      - name: payment_type
+        description: "Payment method used"
+        tests:
+          - accepted_values:
+              name: stg_payment_type_accepted_values
+              arguments:
+                values: ['credit_card', 'boleto', 'voucher', 'debit_card']
+
+  - name: stg_sales_database_product
+    description: "Cleaned product data. Typos corrected in column names (lenght -> length)."
+    columns:
+      - name: product_id
+        description: "Primary key"
+        tests:
+          - unique:
+              name: stg_product_id_unique
+          - not_null:
+              name: stg_product_id_not_null
+      - name: product_name_length
+        description: "Renamed from product_name_lenght (typo fix)"
+      - name: product_description_length
+        description: "Renamed from product_description_lenght (typo fix)"
+
+  - name: stg_sales_database_seller
+    description: "Cleaned seller data. seller_zip_code cast to STRING to preserve leading zeros."
+    columns:
+      - name: seller_id
+        description: "Primary key"
+        tests:
+          - unique:
+              name: stg_seller_id_unique
+          - not_null:
+              name: stg_seller_id_not_null
+      - name: seller_zip_code
+        description: "Cast from INTEGER to STRING to preserve leading zeros"
+
+  - name: stg_sales_database_user
+    description: "Cleaned user data. row_num column removed. customer_zip_code cast to STRING."
+    columns:
+      - name: user_name
+        description: "Primary key"
+        tests:
+          - unique:
+              name: stg_user_name_unique
+          - not_null:
+              name: stg_user_name_not_null
+      - name: customer_zip_code
+        description: "Cast from INTEGER to STRING to preserve leading zeros"

@@ -1,0 +1,26 @@
+version: 2
+
+models:
+  - name: stg_google_analytics__event
+    description: "Cleaned GA4 events. Nested fields flattened. Timestamps converted from microseconds."
+    columns:
+      - name: event_timestamp
+        description: "Converted from microseconds via TIMESTAMP_MICROS()"
+      - name: user_first_touch_timestamp
+        description: "Converted from microseconds via TIMESTAMP_MICROS()"
+      - name: event_date
+        description: "Converted from INTEGER to DATE via PARSE_DATE"
+      - name: browser
+        description: "Flattened from device.web_info.browser"
+      - name: traffic_medium
+        description: "Flattened from traffic_source.medium"
+      - name: traffic_source
+        description: "Flattened from traffic_source.source"
+      - name: traffic_name
+        description: "Flattened from traffic_source.name"
+      - name: ga_session_id
+        description: "Extracted from event_params via UNNEST"
+      - name: page_title
+        description: "Extracted from event_params via UNNEST"
+      - name: page_location
+        description: "Extracted from event_params via UNNEST"

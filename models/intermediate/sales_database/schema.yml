@@ -1,0 +1,18 @@
+version: 2
+
+models:
+  - name: int_sales_database__order
+    description: "{{ doc('int_sales_database__order') }}"
+    columns:
+      - name: order_id
+        description: "Primary key"
+      - name: user_id
+        description: "Foreign key to stg_sales_database_user"
+      - name: average_feedback_score
+        description: "Computed as AVG(feedback_score) from stg_feedback"
+      - name: total_order_amount
+        description: "Computed as SUM(price + shipping_cost) from stg_order_item"
+      - name: total_items
+        description: "Computed as COUNT(*) from stg_order_item"
+      - name: total_distinct_items
+        description: "Computed as COUNT(DISTINCT product_id) from stg_order_item"
